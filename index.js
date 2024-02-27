@@ -1,49 +1,73 @@
 const express = require('express')
-const app = express()
+const { MongoClient } = require('mongodb')
 
-app.get('/', function (req, res) {
-  res.send('Hello, World!')
-})
+const dbUrl = 'mongodb+srv://admin:TaK3JUB1zUEuO9Km@cluster0.5jfro9k.mongodb.net/'
+const dbName = 'OceanJornadaBackend'
 
-app.get('/oi', function (req, res) {
-  res.send('Olá, mundo!')
-})
-const lista = ['Rick sanchez','Morty Smith','Summer Smith']
+async function main() {
+  const client = new MongoClient(dbUrl)
 
-// Read All -> [GET] /item
-app.get('/item', function (req, res) {
-  // Envio a lista inteira como resposta HTTP
-  res.send(lista)
-})
+  console.log('Conectando ao banco de dados...')
+  await client.connect()
+  console.log('Banco de dados conectado com sucesso!')
 
-// Read By ID -> [GET] /item/:id
-app.get('/item/:id', function (req, res) {
-  // Acesso o ID no parâmetro de rota
-  const id = req.params.id
+  const app = express()
 
-  // Acesso item na lista baseado no ID recebido
-  const item = lista[id]
+  app.get('/', function (req, res) {
+    res.send('Hello, World!')
+  })
 
-  // Envio o item obtido como resposta HTTP
-  res.send(item)
-})
+  app.get('/oi', function (req, res) {
+    res.send('Olá, mundo!')
+  })
 
-// Sinalizamos que o corpo da requisição está em JSON
-app.use(express.json())
+  // Lista de Personagens
+  const lista = ['Rick Sanchez', 'Morty Smith', 'Summer Smith']
+  //              0               1              2
 
-// Create -> [POST] /item
-app.post('/item', function (req, res) {
-  // Extraímos o corpo da requisição
-  const body = req.body
+  const db = client.db(dbName)
+  const collection = db.collection('items')
 
-  // Pegamos o nome (string) que foi enviado dentro do corpo
-  const item = body.nome
+  // Read All -> [GET] /item
+  app.get('/item', async function (req, res) {
+    // Realizamos a operação de find na collection do MongoDB
+    const items = await collection.find().toArray()
 
-  // Colocamos o nome dentro da lista de itens
-  lista.push(item)
+    // Envio todos os documentos como resposta HTTP
+    res.send(items)
+  })
 
-  // Enviamos uma resposta de sucesso
-  res.send('Item adicionado com sucesso!')
-})
+  // Read By ID -> [GET] /item/:id
+  app.get('/item/:id', function (req, res) {
+    // Acesso o ID no parâmetro de rota
+    const id = req.params.id
 
-app.listen(3000)
+    // Acesso item na lista baseado no ID recebido
+    const item = lista[id]
+
+    // Envio o item obtido como resposta HTTP
+    res.send(item)
+  })
+
+  // Sinalizamos que o corpo da requisição está em JSON
+  app.use(express.json())
+
+  // Create -> [POST] /item
+  app.post('/item', function (req, res) {
+    // Extraímos o corpo da requisição
+    const body = req.body
+
+    // Pegamos o nome (string) que foi enviado dentro do corpo
+    const item = body.nome
+
+    // Colocamos o nome dentro da lista de itens
+    lista.push(item)
+
+    // Enviamos uma resposta de sucesso
+    res.send('Item adicionado com sucesso!')
+  })
+
+  app.listen(3000)
+}
+
+main()
