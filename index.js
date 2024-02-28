@@ -1,5 +1,5 @@
 const express = require('express')
-const { MongoClient } = require('mongodb')
+const { MongoClient, ObjectId } = require('mongodb')
 
 const dbUrl = 'mongodb+srv://admin:TaK3JUB1zUEuO9Km@cluster0.5jfro9k.mongodb.net/'
 const dbName = 'OceanJornadaBackend'
@@ -38,12 +38,14 @@ async function main() {
   })
 
   // Read By ID -> [GET] /item/:id
-  app.get('/item/:id', function (req, res) {
+  app.get('/item/:id', async function (req, res) {
     // Acesso o ID no parâmetro de rota
     const id = req.params.id
 
-    // Acesso item na lista baseado no ID recebido
-    const item = lista[id]
+    // Acesso item na collection baseado no ID recebido
+    const item = await collection.findOne({
+      _id: new ObjectId(id)
+    })
 
     // Envio o item obtido como resposta HTTP
     res.send(item)
@@ -53,21 +55,68 @@ async function main() {
   app.use(express.json())
 
   // Create -> [POST] /item
-  app.post('/item', function (req, res) {
+  app.post('/item', async function (req, res) {
     // Extraímos o corpo da requisição
-    const body = req.body
+    const item = req.body
 
-    // Pegamos o nome (string) que foi enviado dentro do corpo
-    const item = body.nome
-
-    // Colocamos o nome dentro da lista de itens
-    lista.push(item)
-
+    // Colocamos o item dentro da colection de itens
+    await collection.insertOne(item)
     // Enviamos uma resposta de sucesso
-    res.send('Item adicionado com sucesso!')
+    res.send(item)
   })
+  
+  
+  //todo: Corrigir esse erro
 
+    // Update -> [PUT] /item/:id
+    app.put('/item/:id', async function (req, res) {
+      // Pegamos o ID recebido pela rota
+      const id = req.params.id
+  
+      // Pegamos o novo item do corpo da requisição
+      const novoItem = req.body
+  
+      // Atualizamos o documento na collection
+      await collection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: novoItem }
+      )
+  
+      // Enviamos uma mensagem de sucesso
+      res.send('Item atualizado com sucesso!')
+    })
+
+
+  // app.put('/item/:id,', async function (req, res) {
+    
+  //   const id = req.params.id
+
+  //   // //Pegamos o novo item do corpo da requisição
+  //   // const novoItem = req.body
+
+  //   // //Atualizamos o documento 
+  //   // await collection.updateOne(
+  //   //   { _id: new ObjectId(id)},
+  //   //   { $set: novoItem}
+  //   //   )
+      
+  //     res.send("get update")
+  // })
+
+
+  app.delete('/item/:id', async function (req, res) {
+    //pegar ID
+    const id = req.params.id
+
+    //Realizar a operação
+    await collection.deleteOne({ _id: new ObjectId(id)})
+
+    //enviar uma mensagem
+    res.send('Item removido com sucesso')
+
+  })
   app.listen(3000)
 }
+
 
 main()
