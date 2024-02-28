@@ -1,7 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const { MongoClient, ObjectId } = require('mongodb')
 
-const dbUrl = 'mongodb+srv://admin:TaK3JUB1zUEuO9Km@cluster0.5jfro9k.mongodb.net/'
+const dbUrl = process.env.DATABASE_URL
 const dbName = 'OceanJornadaBackend'
 
 async function main() {
@@ -86,24 +87,6 @@ async function main() {
       res.send('Item atualizado com sucesso!')
     })
 
-
-  // app.put('/item/:id,', async function (req, res) {
-    
-  //   const id = req.params.id
-
-  //   // //Pegamos o novo item do corpo da requisição
-  //   // const novoItem = req.body
-
-  //   // //Atualizamos o documento 
-  //   // await collection.updateOne(
-  //   //   { _id: new ObjectId(id)},
-  //   //   { $set: novoItem}
-  //   //   )
-      
-  //     res.send("get update")
-  // })
-
-
   app.delete('/item/:id', async function (req, res) {
     //pegar ID
     const id = req.params.id
@@ -117,6 +100,5 @@ async function main() {
   })
   app.listen(3000)
 }
-
 
 main()
